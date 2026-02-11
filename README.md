@@ -1,1 +1,186 @@
-# hello
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>My Monkey</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    #main {
+      margin-top: 50px;
+    }
+
+    img {
+      width: 250px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+    }
+
+    #yes {
+      background: green;
+      color: white;
+      transition: transform 0.2s;
+    }
+
+    #no {
+      background: red;
+      color: white;
+    }
+
+    #fireworks {
+      display: none;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+    }
+
+    #fireText {
+      position: fixed;
+      top: 40%;
+      width: 100%;
+      font-size: 3rem;
+      text-shadow: 0 0 20px gold;
+      z-index: 2;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="main">
+    <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87">
+    <h1>are you my monkey</h1>
+    <button id="yes">Yes</button>
+    <button id="no">No</button>
+  </div>
+
+  <div id="fireworks">
+    <div id="fireText">🎆 you are my monkey 🐵 🎆</div>
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <script>
+    const yes = document.getElementById("yes");
+    const no = document.getElementById("no");
+
+    let yesSize = 1;
+    let noClicks = 0;
+    let runningAway = false;
+
+    no.addEventListener("click", () => {
+      noClicks++;
+      yesSize += 0.3;
+      yes.style.transform = `scale(${yesSize})`;
+
+      if (noClicks >= 4 && !runningAway) {
+        runningAway = true;
+        no.style.position = "absolute";
+      }
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!runningAway) return;
+
+      const rect = no.getBoundingClientRect();
+      const distance = Math.hypot(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+      );
+
+      if (distance < 120) {
+        const x = Math.random() * (window.innerWidth - rect.width);
+        const y = Math.random() * (window.innerHeight - rect.height);
+        no.style.left = x + "px";
+        no.style.top = y + "px";
+      }
+    });
+
+    yes.addEventListener("click", () => {
+      document.getElementById("main").style.display = "none";
+      document.getElementById("fireworks").style.display = "block";
+      startFireworks();
+    });
+
+    // 🎆 FIREWORKS 🎆
+    function startFireworks() {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const fireworks = [];
+
+      function random(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function Firework() {
+        this.x = random(0, canvas.width);
+        this.y = random(0, canvas.height / 2);
+        this.particles = [];
+
+        for (let i = 0; i < 60; i++) {
+          this.particles.push({
+            x: this.x,
+            y: this.y,
+            vx: random(-4, 4),
+            vy: random(-4, 4),
+            alpha: 1,
+            color: `hsl(${Math.random() * 360}, 100%, 60%)`
+          });
+        }
+      }
+
+      function animate() {
+        ctx.fillStyle = "rgba(0,0,0,0.25)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (Math.random() < 0.06) {
+          fireworks.push(new Firework());
+        }
+
+        fireworks.forEach((fw, i) => {
+          fw.particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha -= 0.015;
+
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 3, 3);
+          });
+
+          fw.particles = fw.particles.filter(p => p.alpha > 0);
+          if (fw.particles.length === 0) fireworks.splice(i, 1);
+        });
+
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    }
+  </script>
+
+</body>
+</html>
